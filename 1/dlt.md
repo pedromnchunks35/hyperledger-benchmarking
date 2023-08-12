@@ -5,4 +5,5 @@
 - A block is a chain of digital signatures
 - the coin itself is a chain of digital signatures
 - one transaction represents the hashing of the previous transaction, along with the new owner public key using the current owner private key signing
+- There is a chain of transactions per account, which means there is a genesis block per account as well
   
