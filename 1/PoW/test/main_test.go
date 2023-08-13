@@ -1,6 +1,7 @@
 package test
 
 import (
+	merkle "concepts/merkle"
 	t "concepts/transaction"
 	"testing"
 	"time"
@@ -8,6 +9,7 @@ import (
 
 var GlobalTransaction *t.Transaction
 var LastOwnerPrivateKey string = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg0+FM8TPxRxQQTW+Y\nzZIRXj0cB5RvI3TGZt10TBbr0JahRANCAAQJRt3rIUnmKuc+7iZNHw+oK8cJ1oCP\niNJB4mnu1Nx8/ixTXhbgLz68lE0FlP3m6xhyuEA77eojx3nzUD0zM1sk\n-----END PRIVATE KEY-----"
+var Db *merkle.Database
 
 func TestMain(m *testing.M) {
 	//? genesis transaction
@@ -18,6 +20,10 @@ func TestMain(m *testing.M) {
 	headTransaction.NewOwnerPublicKey = ""
 	headTransaction.Timestamp = time.Now().UTC().Unix()
 	GlobalTransaction = headTransaction
+	//? Init the database for merkle unit testing
+	Db = &merkle.Database{}
+	Db.Data = make(map[string][]*t.Transaction)
+	Db.MerkleTree = make(map[string]*merkle.Merkle)
 	//? Putting the data of the first transaction
 	m.Run()
 }

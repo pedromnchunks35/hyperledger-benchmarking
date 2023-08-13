@@ -18,6 +18,7 @@ func Test_Invalid_New_Block(t *testing.T) {
 	if !strings.Contains(err.Error(), "the limit is 10 transactions") {
 		t.Fatalf("it needs to throw a error")
 	}
+	t.Log("block invalid test OK")
 }
 
 func Test_New_Block(t *testing.T) {
@@ -57,4 +58,5 @@ func Test_New_Block(t *testing.T) {
 	if newBlock.Transactions[0] != tran[0] {
 		t.Fatalf("it should have the Global transaction inside of it")
 	}
+	t.Log("block test OK")
 }

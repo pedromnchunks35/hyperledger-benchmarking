@@ -2,10 +2,10 @@ package block
 
 import (
 	trans "concepts/transaction"
+	u "concepts/utils"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -15,21 +15,6 @@ type Block struct {
 	Transactions  []*trans.Transaction `json:"transactions"`
 	PreviousBlock *Block               `json:"previous_block"`
 	Timestamp     int64                `json:"timestamp"`
-}
-
-// ? Generate a random string
-func generateRandomString(length int) string {
-	b := make([]byte, length)
-	//? This is all the possible chars that we can have
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@"
-	//? This is to create a random number generated from a range of int values that will become from a timestamp which is int based
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	//? range the length of the string we want
-	for i := range b {
-		//? assign an char to that byte slice.. every char represents a number in the slice
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
 }
 
 // ? Function to hash the block
@@ -71,7 +56,7 @@ func (b *Block) NewBlock(criteria int, transactions []*trans.Transaction) (*Bloc
 	newBlock.Transactions = transactions
 	for {
 		//? Get the nonce
-		nonce := generateRandomString(50)
+		nonce := u.GenerateRandomString(50)
 		newBlock.Nonce = nonce
 		//? Hash the content
 		hash, err := newBlock.HashBlock()

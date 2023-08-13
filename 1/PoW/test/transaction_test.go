@@ -4,7 +4,6 @@ import (
 	"bytes"
 	trans "concepts/transaction"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -20,6 +19,7 @@ func Test_keys(t *testing.T) {
 	if !ok {
 		t.Fatalf("the keys must be a valid pair")
 	}
+	t.Log("valid keys test OK")
 }
 
 func Test_AddingTransaction(t *testing.T) {
@@ -62,7 +62,7 @@ func Test_AddingTransaction(t *testing.T) {
 	if GlobalTransaction.LastTransaction.Timestamp == 0 {
 		t.Fatalf("it should give a correct timestamp")
 	}
-	fmt.Println(formattedJson.String())
+	t.Logf("%v\n", formattedJson.String())
 	//? compare common things
 	if !strings.Contains(GlobalTransaction.LastTransaction.LastOwnerPublicKey, GlobalTransaction.LastOwnerPublicKey) {
 		t.Fatalf("they should be the same")
@@ -92,5 +92,6 @@ func Test_AddingTransaction(t *testing.T) {
 	if GlobalTransaction.Timestamp == 0 {
 		t.Fatalf("it should give a correct timestamp")
 	}
-	fmt.Println(formattedJson.String())
+	t.Logf("%v\n", formattedJson.String())
+	t.Logf("transaction test OK")
 }

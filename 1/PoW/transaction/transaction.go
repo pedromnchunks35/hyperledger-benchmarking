@@ -1,8 +1,10 @@
 package transaction
 
 import (
+	u "concepts/utils"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -13,6 +15,8 @@ import (
 
 // ? Simple representation of a transaction in a blockchain
 type Transaction struct {
+	//? Transaction id
+	Id string `json:"id"`
 	//? This is the receiver
 	NewOwnerPublicKey string `json:"new_owner_public_key"`
 	//? This is the sender public key
@@ -125,6 +129,7 @@ func (t *Transaction) NewTransaction(
 	newTransaction.Timestamp = time.Now().UTC().Unix()
 	newTransaction.LastOwnerSignature = signature
 	newTransaction.LastTransaction = t
+	newTransaction.Id = u.GenerateRandomString(30)
 	return newTransaction, nil
 }
 
@@ -153,6 +158,7 @@ func (t Transaction) Verify() bool {
 	)
 }
 
+// ? Function to check if a public key matches a given private key
 func CheckKeys(privateKey string, certificate string) (bool, error) {
 	//? Public key retrieval
 	ecdsaPublicKey, err := loadPublicKeyFromString(certificate)
@@ -170,4 +176,16 @@ func CheckKeys(privateKey string, certificate string) (bool, error) {
 		return false, err
 	}
 	return ecdsa.Verify(ecdsaPublicKey, content, signature.R, signature.S), nil
+}
+
+// ? Function to hash a transaction
+func (t Transaction) HashTransaction() (string, error) {
+	//? encode it
+	encoded, err := json.Marshal(t)
+	if err != nil {
+		return "", err
+	}
+	hashed := sha256.Sum256(encoded)
+	//? return as string
+	return string(hashed[:]), nil
 }
