@@ -1,4 +1,5 @@
 # Prof of Work
+[White Paper](https://bitcoin.org/bitcoin.pdf)
 - Consensus that a certain huge number of peers try to find a secret in order to create a certain block
 ## Transactions 
 ![Transaction view](assets/transaction-view.png)
@@ -32,3 +33,4 @@
 - Node needs to choose between making fraud or playing by the rules, where playing by the rules is the most profitable option
 ## Reclaiming Disk Space
 - As we go further in time, the disk space would be full filled by the blockchain data
+- In order to avoid that, in terms of RAM, we create a merkle tree and make the verifications of data based on the hashes, reducing the need to visit all the transactions

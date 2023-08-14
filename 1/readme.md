@@ -3,7 +3,7 @@
 # Consensus Algorithms
 - We will make a brief resume about consensus algorithms and try to understand very deply the etcdraft consensus algorithm
   
--> [Consensus algorithm info](./consensus.md)
+-> [Prof of Work](./PoW.md)
 
 
--> [Etcdraft info](./etcdraft.md)
+-> [Raft](./etcdraft.md)
