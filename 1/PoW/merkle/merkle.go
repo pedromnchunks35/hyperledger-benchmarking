@@ -29,6 +29,11 @@ type HashPair struct {
 	RightHash string `json:"right_hash"`
 }
 
+func (m *Merkle) String() string {
+	value := fmt.Sprintf("{left: %p,right:%p,root:%p,hash:%v}", m.Left, m.Right, m.Root, []byte(m.Hash))
+	return value
+}
+
 // ? Create a hash with a hash pair
 func (hashPair HashPair) HashThePair() (string, error) {
 	encoded, err := json.Marshal(hashPair)
@@ -44,12 +49,8 @@ func (db *Database) BuildMerkle(transactions []*t.Transaction) (string, error) {
 	if len(transactions) == 0 {
 		return "", fmt.Errorf("transactions cannot be empty")
 	}
-	//? Maintain the references, this is for dont loose the pointers when clearing the other arrays (the refill)
-	maintainReferences := []*Merkle{}
-	//? Create the new generated merkle point
-	recentMerkles := []*Merkle{}
-	//? Create the merkles under work
-	upponWorkMerkles := []*Merkle{}
+	//? the init nodes
+	nodes := []*Merkle{}
 	//? Intantiate the first uppon work merkle
 	for i := range transactions {
 		newMerkle := &Merkle{}
@@ -58,101 +59,135 @@ func (db *Database) BuildMerkle(transactions []*t.Transaction) (string, error) {
 			return "", err
 		}
 		newMerkle.Hash = hash
-		upponWorkMerkles = append(upponWorkMerkles, newMerkle)
+		nodes = append(nodes, newMerkle)
 	}
-	//? Start the iteration until there is no more items
-	for {
-		//? Break point
-		upponWorkMerklesLen := len(upponWorkMerkles)
-		recentMerklesLen := len(recentMerkles)
-		//? Case we only have 1 recent, means that the root got reached
-		if recentMerklesLen == 1 && upponWorkMerklesLen == 0 {
-			break
-		}
-		//? also the recent becomes nil
-		//? case we have more recents than 1 and also the on work slice is zero, we need to provide the recent as fuel
-		//? Also, since this is the first iteraction, we need to create the new pointers, after that only the root needs to be created
-		if upponWorkMerklesLen == 0 {
-			upponWorkMerkles = recentMerkles
-			recentMerkles = []*Merkle{}
-			break
-		}
-		//? Get the pair
-		var leftIndex, rightIndex int
-		if upponWorkMerklesLen > 1 {
-			leftIndex = 0
-			rightIndex = 1
-		} else {
-			leftIndex = 0
-			rightIndex = 0
-		}
-		//? Hash the pair
-		hashPair := &HashPair{}
-		hashPair.LeftHash = upponWorkMerkles[leftIndex].Hash
-		hashPair.RightHash = upponWorkMerkles[rightIndex].Hash
-		pairHash, err := hashPair.HashThePair()
+	//? build up the tree
+	root := &Merkle{}
+	var err error
+	if len(nodes) > 1 {
+		root, err = buildIntermediate(nodes)
 		if err != nil {
 			return "", err
 		}
-		//? Create fixed reference to the left
-		newMerkleLeft := &Merkle{}
-		newMerkleLeft.Hash = upponWorkMerkles[leftIndex].Hash
-		newMerkleLeft.Left = upponWorkMerkles[leftIndex].Left
-		newMerkleLeft.Right = upponWorkMerkles[leftIndex].Right
-		//? Create fixed reference for the right
-		newMerkleRight := &Merkle{}
-		newMerkleRight.Hash = upponWorkMerkles[rightIndex].Hash
-		newMerkleRight.Left = upponWorkMerkles[rightIndex].Left
-		newMerkleRight.Right = upponWorkMerkles[rightIndex].Right
-		//? Append to the index fund
-		maintainReferences = append(maintainReferences, newMerkleLeft)
-		maintainReferences = append(maintainReferences, newMerkleRight)
-		//? Created fixed reference to the root
-		newMerkle := &Merkle{}
-		newMerkle.Hash = pairHash
-		newMerkle.Left = maintainReferences[len(maintainReferences)-2]
-		newMerkle.Right = maintainReferences[len(maintainReferences)-1]
-		//? add it to the index fund
-		maintainReferences = append(maintainReferences, newMerkle)
-		//? Put this reference as the father of left and right on the index fund
-		maintainReferences[len(maintainReferences)-3].Root = maintainReferences[len(maintainReferences)-1]
-		maintainReferences[len(maintainReferences)-2].Root = maintainReferences[len(maintainReferences)-1]
-		//? add the newMerkle to the recentMerkles
-		recentMerkles = append(recentMerkles, newMerkle)
-		//? Case there is only one merkle on the on work slice, we shall make it empty
-		if leftIndex == 0 && rightIndex == 0 {
-			upponWorkMerkles = []*Merkle{}
-		} else {
-			//? case there are atleast 2 items, we should get what is in front of that index
-			upponWorkMerkles = upponWorkMerkles[2:]
+	} else {
+		//? Hash only that hash
+		hashPair := HashPair{
+			LeftHash:  nodes[0].Hash,
+			RightHash: nodes[0].Hash,
 		}
-	}
-	fmt.Println(len(maintainReferences))
-	if len(recentMerkles) != 1 {
-		//? For loop to work with the references that we have
-		for {
-			//? Break point
-			upponWorkMerklesLen := len(upponWorkMerkles)
-			recentMerklesLen := len(recentMerkles)
-			//? case we have more recents than 1 and also the on work slice is zero, we need to provide the recent as fuel
-			//? also the recent becomes nil
-			if recentMerklesLen != 1 && upponWorkMerklesLen == 0 {
-				upponWorkMerkles = recentMerkles
-				recentMerkles = []*Merkle{}
-			}
-			//? Case we only have 1 recent, means that the root got reached
-			if recentMerklesLen == 1 && upponWorkMerklesLen == 0 {
-				break
-			}
+		hash, err := hashPair.HashThePair()
+		if err != nil {
+			return "", nil
+		}
+		root = &Merkle{
+			Left:  nodes[0],
+			Right: nodes[0],
+			Hash:  hash,
 		}
 	}
 	//? Add the transactions and also the merkle tree to the database
 	db.DataMutex.Lock()
 	//? add the transactions to the db
-	db.Data[recentMerkles[0].Hash] = transactions
+	db.Data[root.Hash] = transactions
 	//? add the root merkle
-	db.MerkleTree[recentMerkles[0].Hash] = recentMerkles[0]
+	db.MerkleTree[root.Hash] = root
 	db.DataMutex.Unlock()
 	//? In the final we can perfectly return the recentMerkles[1].Hash, which represents the root after all the work done on the loop
-	return recentMerkles[0].Hash, nil
+	return root.Hash, nil
+}
+
+// ? Function to build the tree up
+func buildIntermediate(data []*Merkle) (*Merkle, error) {
+	if len(data) == 1 {
+		return data[0], nil
+	}
+	var nodes []*Merkle
+	for i := 0; i < len(data); i += 2 {
+		leftIndex, rightIndex := i, i+1
+		if i+1 == len(data) {
+			rightIndex = i
+		}
+		//? Create the hash
+		pairHash := &HashPair{
+			LeftHash:  data[leftIndex].Hash,
+			RightHash: data[rightIndex].Hash,
+		}
+		hash, err := pairHash.HashThePair()
+		if err != nil {
+			return nil, err
+		}
+		//? Create a head and put the left and right inside of it
+		head := &Merkle{
+			Hash:  hash,
+			Left:  data[leftIndex],
+			Right: data[rightIndex],
+		}
+		//? Point the left and right to the head
+		head.Left.Root = head
+		head.Right.Root = head
+		nodes = append(nodes, head)
+	}
+	return buildIntermediate(nodes)
+}
+
+// ? Get the pointer with a given hash
+func (m *Merkle) getPointerFromHash(hash string) *Merkle {
+	//? Stop point
+	if m == nil {
+		return nil
+	}
+	if m.Hash == hash {
+		return m
+	}
+	//? Check if it is different than nil
+	if leftPointer := m.Left.getPointerFromHash(hash); leftPointer != nil {
+		return leftPointer
+	}
+
+	if rightPointer := m.Right.getPointerFromHash(hash); rightPointer != nil {
+		return rightPointer
+	}
+	//? return nil
+	return nil
+}
+
+func (leaf *Merkle) hashUntilReachRoot() (string, error) {
+	currentPointer := leaf
+	resultHash := ""
+	for {
+		//? break point
+		if currentPointer.Root == nil {
+			break
+		}
+		//? establish the current pointer
+		currentPointer = currentPointer.Root
+		//? make a hash from it
+		hashP := &HashPair{
+			LeftHash:  currentPointer.Left.Hash,
+			RightHash: currentPointer.Right.Hash,
+		}
+		hash, err := hashP.HashThePair()
+		if err != nil {
+			return "", err
+		}
+		resultHash = hash
+		//? Check if the hash is equal to the hash of the current pointer whish is the root of the leaf
+		if hash != currentPointer.Hash {
+			return "", fmt.Errorf("the result hash is not equal to the hash of the root of the leaf")
+		}
+	}
+	return resultHash, nil
+}
+
+// ? Verify hash in a given merkle tree
+func (m *Merkle) VerifyHash(hash string) (bool, error) {
+	//? get the pointer
+	pointer := m.getPointerFromHash(hash)
+	if pointer == nil {
+		return false, nil
+	}
+	//? Hash the tree from the leaf until reach the root
+	newHash, _ := pointer.hashUntilReachRoot()
+	//? check equality
+	return newHash != "", nil
 }

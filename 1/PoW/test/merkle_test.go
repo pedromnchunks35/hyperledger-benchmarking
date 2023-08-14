@@ -1,6 +1,8 @@
 package test
 
 import (
+	block "concepts/block"
+	merkle "concepts/merkle"
 	trans "concepts/transaction"
 	utils "concepts/utils"
 	"strings"
@@ -86,6 +88,7 @@ func Test_Merkle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("should not throw a error at this point")
 	}
+
 	if hash != Db.MerkleTree[root].Left.Left.Left.Hash {
 		t.Fatalf("transacion 0 hash should be the same has the one on the merkle tree")
 	}
@@ -125,5 +128,96 @@ func Test_Merkle(t *testing.T) {
 	}
 	if hash != Db.MerkleTree[root].Right.Right.Right.Hash {
 		t.Fatalf("transacion 4 hash should be the same has the one on the merkle tree")
+	}
+}
+
+func Test_Proof_Invalid(t *testing.T) {
+	//? Create the transactions
+	transactions := []*trans.Transaction{}
+	for i := 0; i < 5; i++ {
+		newTransaction := trans.Transaction{}
+		newTransaction.Id = utils.GenerateRandomString(50)
+		newTransaction.Timestamp = time.Now().UTC().Unix()
+		transactions = append(transactions, &newTransaction)
+	}
+	//? Create merkle
+	root, err := Db.BuildMerkle(transactions)
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	//? verify it invalid hash
+	res, err := Db.MerkleTree[root].VerifyHash("dhbiuasfbiuabuifb")
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	if res != false {
+		t.Fatalf("should throw false, it is invalid")
+	}
+	//? Producing invalid merkle tree
+	merkle := &merkle.Merkle{
+		Hash: "sodhsiohdoishaioh",
+		Left: &merkle.Merkle{
+			Hash: "kkkkkkkkkajsiajhdsiha",
+		},
+		Right: &merkle.Merkle{
+			Hash: "sanbfiuhasiuhiofuhsao",
+		},
+	}
+	res, _ = merkle.VerifyHash("sanbfiuhasiuhiofuhsao")
+	if res != false {
+		t.Fatalf("should throw false")
+	}
+}
+
+func Test_Proof_valid(t *testing.T) {
+	//? Create the transactions
+	transactions := []*trans.Transaction{}
+	for i := 0; i < 5; i++ {
+		newTransaction := trans.Transaction{}
+		newTransaction.Id = utils.GenerateRandomString(50)
+		newTransaction.Timestamp = time.Now().UTC().Unix()
+		transactions = append(transactions, &newTransaction)
+	}
+	//? Create merkle
+	root, err := Db.BuildMerkle(transactions)
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	//? verify it invalid hash
+	res, err := Db.MerkleTree[root].VerifyHash(Db.MerkleTree[root].Left.Left.Left.Hash)
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	if res != true {
+		t.Fatalf("should throw true, it is valid")
+	}
+}
+
+func Test_Merkle_Block(t *testing.T) {
+	//? Create the transactions
+	transactions := []*trans.Transaction{}
+	for i := 0; i < 5; i++ {
+		newTransaction := trans.Transaction{}
+		newTransaction.Id = utils.GenerateRandomString(50)
+		newTransaction.Timestamp = time.Now().UTC().Unix()
+		transactions = append(transactions, &newTransaction)
+	}
+	//? Create merkle
+	root, err := Db.BuildMerkle(transactions)
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	newBlock := block.BlockV2{}
+	newBlock.Merkle = root
+	hash, err := transactions[0].HashTransaction()
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	res, err := newBlock.VerifyHashInBlock(hash, Db)
+	if err != nil {
+		t.Fatalf("should not throw a error at this stage")
+	}
+	if res != true {
+		t.Fatalf("should throw true, it is valid")
 	}
 }

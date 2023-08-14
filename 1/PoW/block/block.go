@@ -1,6 +1,7 @@
 package block
 
 import (
+	merkle "concepts/merkle"
 	trans "concepts/transaction"
 	u "concepts/utils"
 	"crypto/sha256"
@@ -8,6 +9,20 @@ import (
 	"fmt"
 	"time"
 )
+
+type BlockV2 struct {
+	Nonce         string `json:"nonce"`
+	BlockNumber   int    `json:"block_number"`
+	Merkle        string `json:"merkle_hash"`
+	PreviousBlock *Block `json:"previous_block"`
+	Timestamp     int64  `json:"timestamp"`
+}
+
+// ? Function to verify a given block
+func (b BlockV2) VerifyHashInBlock(transactionHash string, db *merkle.Database) (bool, error) {
+	merkle := db.MerkleTree[b.Merkle]
+	return merkle.VerifyHash(transactionHash)
+}
 
 type Block struct {
 	Nonce         string               `json:"nonce"`
