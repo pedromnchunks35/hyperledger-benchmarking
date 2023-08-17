@@ -1,0 +1,51 @@
+syntax = "proto3";
+package protofiles;
+option go_package = "raft/protofiles"
+service RaftSimple{
+    rpc RequestVoteRPC(VoteRequest)returns(VoteConfirmation){}
+    rpc AppendLogsRPC(AppendRequest)returns(AppendLogsConfirmation){}
+}
+message VoteRequest{
+    //? Temporal measurement in raft
+    int32 term = 1;
+    string candidateId = 2;
+    //? Last log index of the candidate
+    int32 lastLogIndex = 3;
+    //? Last term of the candidate
+    int32 lastLogTerm = 4;
+}
+message VoteConfirmation{
+    //? Receiver term (if the vote is denied and the term is high, we should update for this term and we dont get the vote)
+    int32 term = 1;
+    //? If the vote got granted or not
+    bool voteGranted = 2
+}
+message AppendRequest{
+    //? Term of the leader that is trying to append the log
+    int32 term = 1;
+    string leaderId = 2;
+    //? The log index of previous term we have before this that we are giving
+    int32 prevLogIndex = 3;
+    //? Term of the previous log before this that we are giving
+    int32 prevLogTerm = 4;
+    //? The new data
+    Entries entries = 5;
+    //? Leader current commit index
+    int32 leaderCommit = 6;
+}
+message AppendLogsConfirmation{
+    //? The current term for the leader either update himself case it is high and he needs to step up as follower or to the leader know that the follower is wrong
+    int32 term = 1;
+    //? Check if the append got successfull or not
+    bool success = 2;
+}
+//? entries are a list of logs that will be placed in a given index
+message Entries{
+    int32 index_of_log
+    repeated Log log 
+}
+//? Log which represents some kind of instruction to run
+message Log{
+    string command
+    repeated string args
+}
