@@ -1,6 +1,6 @@
 syntax = "proto3";
 package protofiles;
-option go_package = "raft/protofiles"
+option go_package = "raft/protofiles";
 service RaftSimple{
     rpc RequestVoteRPC(VoteRequest)returns(VoteConfirmation){}
     rpc AppendLogsRPC(AppendRequest)returns(AppendLogsConfirmation){}
@@ -18,7 +18,7 @@ message VoteConfirmation{
     //? Receiver term (if the vote is denied and the term is high, we should update for this term and we dont get the vote)
     int32 term = 1;
     //? If the vote got granted or not
-    bool voteGranted = 2
+    bool voteGranted = 2;
 }
 message AppendRequest{
     //? Term of the leader that is trying to append the log
@@ -41,11 +41,16 @@ message AppendLogsConfirmation{
 }
 //? entries are a list of logs that will be placed in a given index
 message Entries{
-    int32 index_of_log
-    repeated Log log 
+    repeated Entrie entrie = 1;
+}
+//? single entrie
+message Entrie{
+    int32 index_of_log = 1;
+    int32 term = 2;
+    Log log = 3;
 }
 //? Log which represents some kind of instruction to run
 message Log{
-    string command
-    repeated string args
+    string command = 1;
+    repeated string args = 2;
 }
