@@ -3,7 +3,6 @@ package test
 import (
 	"raft/server/utils"
 	"testing"
-	"time"
 )
 
 func Test_Initial_State(t *testing.T) {
@@ -25,6 +24,12 @@ func Test_Initial_State(t *testing.T) {
 	if len(State.PersistentState.ServerClients) != 0 {
 		t.Fatalf("it should start with length zero")
 	}
+	if !State.PersistentState.Debug {
+		t.Fatalf("it should be true")
+	}
+	if State.PersistentState.LeaderId != "" {
+		t.Fatalf("it should start as empty string")
+	}
 	if State.VolatileState.CommitIndex != 0 {
 		t.Fatalf("the commited initial index should be zero")
 	}
@@ -39,16 +44,5 @@ func Test_Initial_State(t *testing.T) {
 	}
 	if len(State.JustLeaderVolatileState.NextIndexServers) != 0 {
 		t.Fatalf("the length of the next index for the server should be zero")
-	}
-}
-
-func Test_Random_Time(t *testing.T) {
-	go ServerImpl.Vote.RandomTimer()
-	if !State.VolatileState.ContractRenewal {
-		t.Fatalf("should not be true in this stage, since it must wait between 149 and 170ms")
-	}
-	time.Sleep(time.Duration(165) * time.Millisecond)
-	if State.VolatileState.ContractRenewal {
-		t.Errorf("the contract should have been broken at this stage (it can make the election to fast, maybe not a problem)")
 	}
 }

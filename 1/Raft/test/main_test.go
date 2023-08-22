@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 	State = state.InitState("candidate1")
 	ServerImpl.Logs.SetState(State)
 	ServerImpl.Vote.SetState(State)
+	ServerImpl.Hearthbeat.SetState(State)
 	//? Listening
 	lis := bufconn.Listen(1920 * 1920)
 	defer lis.Close()

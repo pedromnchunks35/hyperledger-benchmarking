@@ -28,6 +28,10 @@ type PersistentState struct {
 	ServerClients map[string]server.RaftSimpleClient `json:"server_clients"`
 	//? Number of gathered votes
 	GatheredVotes int32 `json:"gathered_votes"`
+	//? Leader id
+	LeaderId string `json:"id_leader"`
+	//? If it is in debug mode
+	Debug bool `json:"debug"`
 }
 
 // ? Volatile state
@@ -58,6 +62,8 @@ func InitState(candidateId string) *State {
 	newState.PersistentState.MyVote = ""
 	newState.PersistentState.ServerMemberState = utils.Follower
 	newState.PersistentState.ServerClients = make(map[string]server.RaftSimpleClient)
+	newState.PersistentState.Debug = true
+	newState.PersistentState.LeaderId = ""
 	//? Volatile state from the raft protocol for all servers
 	newState.VolatileState.CommitIndex = int32(0)
 	newState.VolatileState.LastApplied = int32(0)

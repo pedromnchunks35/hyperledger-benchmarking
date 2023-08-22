@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type RaftSimpleClient interface {
 	RequestVoteRPC(ctx context.Context, in *VoteRequest, opts ...grpc.CallOption) (*VoteConfirmation, error)
 	AppendLogsRPC(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendLogsConfirmation, error)
+	HearthBeatRPC(ctx context.Context, in *HearthBeatRequest, opts ...grpc.CallOption) (*HearthBeatConfirmation, error)
 }
 
 type raftSimpleClient struct {
@@ -52,12 +53,22 @@ func (c *raftSimpleClient) AppendLogsRPC(ctx context.Context, in *AppendRequest,
 	return out, nil
 }
 
+func (c *raftSimpleClient) HearthBeatRPC(ctx context.Context, in *HearthBeatRequest, opts ...grpc.CallOption) (*HearthBeatConfirmation, error) {
+	out := new(HearthBeatConfirmation)
+	err := c.cc.Invoke(ctx, "/protofiles.RaftSimple/HearthBeatRPC", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RaftSimpleServer is the server API for RaftSimple service.
 // All implementations must embed UnimplementedRaftSimpleServer
 // for forward compatibility
 type RaftSimpleServer interface {
 	RequestVoteRPC(context.Context, *VoteRequest) (*VoteConfirmation, error)
 	AppendLogsRPC(context.Context, *AppendRequest) (*AppendLogsConfirmation, error)
+	HearthBeatRPC(context.Context, *HearthBeatRequest) (*HearthBeatConfirmation, error)
 	mustEmbedUnimplementedRaftSimpleServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedRaftSimpleServer) RequestVoteRPC(context.Context, *VoteReques
 }
 func (UnimplementedRaftSimpleServer) AppendLogsRPC(context.Context, *AppendRequest) (*AppendLogsConfirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppendLogsRPC not implemented")
+}
+func (UnimplementedRaftSimpleServer) HearthBeatRPC(context.Context, *HearthBeatRequest) (*HearthBeatConfirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HearthBeatRPC not implemented")
 }
 func (UnimplementedRaftSimpleServer) mustEmbedUnimplementedRaftSimpleServer() {}
 
@@ -120,6 +134,24 @@ func _RaftSimple_AppendLogsRPC_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RaftSimple_HearthBeatRPC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HearthBeatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RaftSimpleServer).HearthBeatRPC(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protofiles.RaftSimple/HearthBeatRPC",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RaftSimpleServer).HearthBeatRPC(ctx, req.(*HearthBeatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RaftSimple_ServiceDesc is the grpc.ServiceDesc for RaftSimple service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var RaftSimple_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AppendLogsRPC",
 			Handler:    _RaftSimple_AppendLogsRPC_Handler,
+		},
+		{
+			MethodName: "HearthBeatRPC",
+			Handler:    _RaftSimple_HearthBeatRPC_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

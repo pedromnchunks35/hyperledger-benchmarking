@@ -8,8 +8,6 @@ import (
 	state "raft/server/state"
 	"raft/server/utils"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 type Vote struct {
@@ -34,7 +32,8 @@ func answerVote(answer bool, currentTerm int32) *server.VoteConfirmation {
 }
 
 // ? Function that creates a vote request
-func (vote Vote) RequestVoteRPC(ctx context.Context, req *server.VoteRequest) (*server.VoteConfirmation, error) {
+func (vote *Vote) RequestVoteRPC(ctx context.Context, req *server.VoteRequest) (*server.VoteConfirmation, error) {
+	utils.Log("Receiving a vote request from candidate %v\n", req.IdCandidate)
 	//? Checking if we already voted for someone
 	if vote.state.MyVote != "" {
 		return answerVote(false, vote.state.CurrentTerm), nil
@@ -48,11 +47,13 @@ func (vote Vote) RequestVoteRPC(ctx context.Context, req *server.VoteRequest) (*
 		vote.state.CurrentTerm > req.LastLogTerm {
 		return answerVote(false, vote.state.CurrentTerm), nil
 	}
+	vote.state.MyVote = req.IdCandidate
 	return answerVote(true, vote.state.CurrentTerm), nil
 }
 
 // ? Func to generate a random timer
 func (vote *Vote) RandomTimer() {
+	utils.Log("Starting a random timer\n")
 	for {
 		//? Values that it can rage from
 		elegibleValues := make([]int, 30)
@@ -75,24 +76,27 @@ func (vote *Vote) RandomTimer() {
 
 // ? Function to become a follower
 func (vote *Vote) BecomeFollower() {
+	utils.Log("Becoming a follower\n")
 	vote.state.PersistentState.ServerMemberState = utils.Follower
 	go vote.RandomTimer()
 }
 
 // ? Function to become a leader
 func (vote *Vote) BecomeLeader() {
+	utils.Log("Becoming a leader\n")
 	vote.state.PersistentState.ServerMemberState = utils.Leader
 }
 
 // ? Function to start a election
 func (vote *Vote) StartElection() {
+	utils.Log("Starting a election\n")
 	//? Turn myself into a candidate
 	vote.state.PersistentState.ServerMemberState = utils.Candidate
 	//? Loop all over the clients that we have and gather their votes
 	for key, value := range vote.state.PersistentState.ServerClients {
 		//? Create the request
 		requestVote := &server.VoteRequest{}
-		requestVote.CandidateId = vote.state.PersistentState.CandidateId
+		requestVote.IdCandidate = vote.state.PersistentState.CandidateId
 		requestVote.LastLogIndex = vote.state.
 			PersistentState.Entries.Entrie[len(vote.state.PersistentState.Entries.Entrie)-1].IndexOfLog
 		requestVote.LastLogTerm = vote.state.
@@ -106,8 +110,7 @@ func (vote *Vote) StartElection() {
 			requestVote,
 		)
 		if err != nil {
-			color.Red("[ERROR] ")
-			color.Red("The candidate with key %v does just throw an error: %v", key, err)
+			utils.ErrorLog("The candidate with key %v does just throw an error: %v \n", key, err)
 		}
 		//? Case the vote failed and the given term is higher, then we shall become a follower and break this cycle
 		if !confirmation.VoteGranted && confirmation.Term > vote.state.CurrentTerm {
@@ -126,8 +129,4 @@ func (vote *Vote) StartElection() {
 	}
 	//? reset votes
 	vote.state.PersistentState.GatheredVotes = int32(0)
-	//? case it isnt the leader lets become a follower
-	if vote.state.PersistentState.ServerMemberState == utils.Candidate {
-		go vote.BecomeFollower()
-	}
 }
