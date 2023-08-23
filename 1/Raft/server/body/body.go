@@ -34,7 +34,7 @@ func (rs *RaftServer) SetState(state *state.State) {
 
 func (rs RaftServer) SendHearthBeats() error {
 	err := rs.Hearthbeat.SendHearthBeats()
-	if err != nil && strings.Contains(err.Error(), "someone has a higher term") {
+	if err != nil && strings.Contains(err.Error(), "has more term than candidate") {
 		rs.Vote.BecomeFollower()
 	}
 	return nil
@@ -43,8 +43,8 @@ func (rs RaftServer) SendHearthBeats() error {
 // ? Listener in case we are the leaders
 func (rs RaftServer) InitListener() {
 	for {
-		if rs.state.PersistentState.ServerMemberState == utils.Leader {
-			utils.Log("Sending hearthbeats")
+		if rs.state.PersistentState.ServerMemberState == utils.Leader && rs.state.PersistentState.Debug {
+			utils.Log("Sending hearthbeats\n")
 			rs.SendHearthBeats()
 		}
 	}
@@ -52,11 +52,7 @@ func (rs RaftServer) InitListener() {
 
 // ?  We can become followers if we send a higher term
 func (rs *RaftServer) AppendLogsRPC(ctx context.Context, req *server.AppendRequest) (*server.AppendLogsConfirmation, error) {
-	res, err := rs.Logs.AppendLogsRPC(ctx, req)
-	if err != nil && strings.Contains(err.Error(), "someone has a higher term") {
-		rs.Vote.BecomeFollower()
-	}
-	return res, nil
+	return rs.Logs.AppendLogsRPC(ctx, req)
 }
 
 // ? Function to handle votes
@@ -66,7 +62,18 @@ func (rs *RaftServer) RequestVoteRPC(ctx context.Context, req *server.VoteReques
 
 // ? Function to handle hearthbeats
 func (rs *RaftServer) HearthBeatRPC(ctx context.Context, req *server.HearthBeatRequest) (*server.HearthBeatConfirmation, error) {
-	return rs.Hearthbeat.HearhBeatRPC(ctx, req)
+	conf, err := rs.Hearthbeat.HearhBeatRPC(ctx, req)
+	rs.state.VolatileState.ContractRenewal = true
+	if err != nil {
+		if strings.Contains(err.Error(), "there is a leader already") {
+			rs.Vote.BecomeFollower()
+			return conf, nil
+		} else if strings.Contains(err.Error(), "has more term than candidate") {
+			rs.Vote.BecomeLeader()
+			return conf, err
+		}
+	}
+	return conf, err
 }
 
 // ? Function to inject a client

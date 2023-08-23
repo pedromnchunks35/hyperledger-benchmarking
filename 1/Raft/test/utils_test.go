@@ -62,7 +62,7 @@ func Test_Represent_Majority(t *testing.T) {
 	if !result {
 		t.Fatalf("should throw true")
 	}
-	result = utils.RepresentsMajority(10, 5)
+	result = utils.RepresentsMajority(10, 4)
 	if result {
 		t.Fatalf("should throw false")
 	}

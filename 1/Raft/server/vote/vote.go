@@ -89,6 +89,11 @@ func (vote *Vote) BecomeLeader() {
 
 // ? Function to start a election
 func (vote *Vote) StartElection() {
+	defer func() {
+		if r := recover(); r != nil {
+			utils.Log("Recovering: %v\n", r)
+		}
+	}()
 	utils.Log("Starting a election\n")
 	//? Turn myself into a candidate
 	vote.state.PersistentState.ServerMemberState = utils.Candidate
@@ -97,10 +102,15 @@ func (vote *Vote) StartElection() {
 		//? Create the request
 		requestVote := &server.VoteRequest{}
 		requestVote.IdCandidate = vote.state.PersistentState.CandidateId
-		requestVote.LastLogIndex = vote.state.
-			PersistentState.Entries.Entrie[len(vote.state.PersistentState.Entries.Entrie)-1].IndexOfLog
-		requestVote.LastLogTerm = vote.state.
-			PersistentState.Entries.Entrie[len(vote.state.PersistentState.Entries.Entrie)-1].Term
+		if len(vote.state.PersistentState.Entries.Entrie) != 0 {
+			requestVote.LastLogIndex = vote.state.
+				PersistentState.Entries.Entrie[len(vote.state.PersistentState.Entries.Entrie)-1].IndexOfLog
+			requestVote.LastLogTerm = vote.state.
+				PersistentState.Entries.Entrie[len(vote.state.PersistentState.Entries.Entrie)-1].Term
+		} else {
+			requestVote.LastLogIndex = 0
+			requestVote.LastLogTerm = 0
+		}
 		requestVote.Term = vote.state.PersistentState.CurrentTerm
 		//? Make the call using the client in the map
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(3)*time.Second)

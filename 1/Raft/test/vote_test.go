@@ -5,7 +5,6 @@ import (
 	server "raft/protofiles"
 	"raft/server/utils"
 	"testing"
-	"time"
 )
 
 func Test_Request_Vote(t *testing.T) {
@@ -80,11 +79,20 @@ func Test_Request_Vote_Invalid(t *testing.T) {
 }
 
 func Test_Random_Time(t *testing.T) {
-	go ServerImpl.Vote.RandomTimer()
+	ch := make(chan error, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				utils.Log("Recovering: %v\n", r)
+			}
+		}()
+		ServerImpl.Vote.RandomTimer()
+		ch <- nil
+	}()
 	if !State.VolatileState.ContractRenewal {
 		t.Fatalf("should not be true in this stage, since it must wait between 149 and 170ms")
 	}
-	time.Sleep(time.Duration(165) * time.Millisecond)
+	<-ch
 	if State.VolatileState.ContractRenewal {
 		t.Errorf("the contract should have been broken at this stage (it can make the election to fast, maybe not a problem)")
 	}

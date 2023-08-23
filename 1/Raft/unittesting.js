@@ -20,6 +20,10 @@ TODO LOGS
     // AppendLogsRPC
 TODO HEARTHBEAT
     // SendHearthBeat
-    * SendHearthBeats
-    * HearthBeatRPC
+    // SendHearthBeats
+    // HearthBeatRPC
+TODO BODY
+    // SendHearthBeats
+    // InitListener
+    * AppendLogsRPC
 */
