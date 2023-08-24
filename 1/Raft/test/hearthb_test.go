@@ -106,7 +106,7 @@ func Test_Hearth_Beat_RPC(t *testing.T) {
 	req := &server.HearthBeatRequest{}
 	req.IdCandidate = "candidate1"
 	req.Term = 1
-	conf, err := fakeNetwork.server2.Hearthbeat.HearhBeatRPC(context.Background(), req)
+	conf, err := fakeNetwork.server2.Hearthbeat.HearthBeatRPC(context.Background(), req)
 	if !strings.Contains(err.Error(), "there is a leader already") {
 		t.Fatalf("should return that there is a leader already")
 	}
@@ -117,7 +117,7 @@ func Test_Hearth_Beat_RPC(t *testing.T) {
 		t.Fatalf("should have the term as 1")
 	}
 	//? case there is no leader setted or the leader is different
-	conf, err = fakeNetwork.server3.Hearthbeat.HearhBeatRPC(context.Background(), req)
+	conf, err = fakeNetwork.server3.Hearthbeat.HearthBeatRPC(context.Background(), req)
 	if err != nil {
 		t.Fatalf("should not throw a error at this stage")
 	}
@@ -141,8 +141,8 @@ func Test_Hearth_Beat_RPC(t *testing.T) {
 	req.IdCandidate = "candidate2"
 	req.Term = 0
 	fakeNetwork.state1.PersistentState.CurrentTerm = 1
-	fakeNetwork.server1.Hearthbeat.HearhBeatRPC(context.Background(), req)
-	conf, err = fakeNetwork.server1.Hearthbeat.HearhBeatRPC(context.Background(), req)
+	fakeNetwork.server1.Hearthbeat.HearthBeatRPC(context.Background(), req)
+	conf, err = fakeNetwork.server1.Hearthbeat.HearthBeatRPC(context.Background(), req)
 	if !strings.Contains(err.Error(), "has more term than candidate") {
 		t.Fatalf("it should throw the error saying that he has more term than the candidate")
 	}

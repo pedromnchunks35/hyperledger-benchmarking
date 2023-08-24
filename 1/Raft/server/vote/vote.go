@@ -44,7 +44,7 @@ func (vote *Vote) RequestVoteRPC(ctx context.Context, req *server.VoteRequest) (
 	}
 	//? Compare the state and term of the last log
 	if vote.state.VolatileState.CommitIndex > req.LastLogIndex ||
-		vote.state.CurrentTerm > req.LastLogTerm {
+		(vote.state.CurrentTerm > req.LastLogTerm && req.LastLogTerm != 0) {
 		return answerVote(false, vote.state.CurrentTerm), nil
 	}
 	vote.state.MyVote = req.IdCandidate
@@ -55,6 +55,7 @@ func (vote *Vote) RequestVoteRPC(ctx context.Context, req *server.VoteRequest) (
 func (vote *Vote) RandomTimer() {
 	utils.Log("Starting a random timer\n")
 	for {
+		vote.state.VolatileState.MutexContractRenewal.Lock()
 		//? Values that it can rage from
 		elegibleValues := make([]int, 30)
 		for i := 0; i < len(elegibleValues); i++ {
@@ -67,8 +68,10 @@ func (vote *Vote) RandomTimer() {
 		time.Sleep(duration)
 		if vote.state.VolatileState.ContractRenewal {
 			vote.state.VolatileState.ContractRenewal = false
+			vote.state.VolatileState.MutexContractRenewal.Unlock()
 		} else {
 			go vote.StartElection()
+			vote.state.VolatileState.MutexContractRenewal.Unlock()
 			break
 		}
 	}
@@ -76,6 +79,8 @@ func (vote *Vote) RandomTimer() {
 
 // ? Function to become a follower
 func (vote *Vote) BecomeFollower() {
+	vote.state.PersistentState.MutexServerMemberState.Lock()
+	defer vote.state.PersistentState.MutexServerMemberState.Unlock()
 	utils.Log("Becoming a follower\n")
 	vote.state.PersistentState.ServerMemberState = utils.Follower
 	go vote.RandomTimer()
@@ -83,20 +88,29 @@ func (vote *Vote) BecomeFollower() {
 
 // ? Function to become a leader
 func (vote *Vote) BecomeLeader() {
+	vote.state.PersistentState.MutexServerMemberState.Lock()
+	defer vote.state.PersistentState.MutexServerMemberState.Unlock()
 	utils.Log("Becoming a leader\n")
 	vote.state.PersistentState.ServerMemberState = utils.Leader
 }
 
 // ? Function to start a election
 func (vote *Vote) StartElection() {
-	defer func() {
-		if r := recover(); r != nil {
-			utils.Log("Recovering: %v\n", r)
-		}
-	}()
+	vote.state.PersistentState.MutexServerMemberState.Lock()
+	defer vote.state.PersistentState.MutexServerMemberState.Unlock()
+	vote.state.PersistentState.MutexCurrentTerm.Lock()
+	defer vote.state.PersistentState.MutexCurrentTerm.Unlock()
+	vote.state.PersistentState.MutexServerClients.RLock()
+	defer vote.state.PersistentState.MutexServerClients.RUnlock()
+	vote.state.PersistentState.MutexCandidateId.Lock()
+	defer vote.state.PersistentState.MutexCandidateId.Unlock()
+	vote.state.PersistentState.MutexEntries.RLock()
+	defer vote.state.PersistentState.MutexEntries.RUnlock()
+	vote.state.PersistentState.MutexGatheredVotes.Lock()
+	defer vote.state.PersistentState.MutexGatheredVotes.Unlock()
 	utils.Log("Starting a election\n")
-	//? Turn myself into a candidate
 	vote.state.PersistentState.ServerMemberState = utils.Candidate
+	vote.state.PersistentState.CurrentTerm++
 	//? Loop all over the clients that we have and gather their votes
 	for key, value := range vote.state.PersistentState.ServerClients {
 		//? Create the request
@@ -119,24 +133,30 @@ func (vote *Vote) StartElection() {
 			ctx,
 			requestVote,
 		)
+
 		if err != nil {
 			utils.ErrorLog("The candidate with key %v does just throw an error: %v \n", key, err)
-		}
-		//? Case the vote failed and the given term is higher, then we shall become a follower and break this cycle
-		if !confirmation.VoteGranted && confirmation.Term > vote.state.CurrentTerm {
-			go vote.BecomeFollower()
-			vote.state.PersistentState.GatheredVotes = int32(0)
-			break
-		}
-		//? Case the vote got conceided, we shall sum 1 vote
-		if confirmation.VoteGranted {
-			vote.state.PersistentState.GatheredVotes += int32(1)
+		} else {
+			//? Case the vote failed and the given term is higher, then we shall become a follower and break this cycle
+			if !confirmation.VoteGranted && confirmation.Term > vote.state.CurrentTerm {
+				utils.Log("vote not granted by %v", key)
+				vote.state.PersistentState.GatheredVotes = int32(0)
+				break
+			}
+			//? Case the vote got conceided, we shall sum 1 vote
+			if confirmation.VoteGranted {
+				utils.Log("vote granted by %v\n", key)
+				vote.state.PersistentState.GatheredVotes += int32(1)
+			}
 		}
 	}
 	//? Case there is a majority of votes we shall become leader
 	if utils.RepresentsMajority(vote.state.GatheredVotes, int32(len(vote.state.PersistentState.ServerClients))) {
 		go vote.BecomeLeader()
+		return
 	}
+	go vote.RandomTimer()
 	//? reset votes
+	vote.state.PersistentState.MyVote = ""
 	vote.state.PersistentState.GatheredVotes = int32(0)
 }

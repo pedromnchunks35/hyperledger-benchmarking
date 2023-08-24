@@ -91,7 +91,6 @@ func (logs *Logs) Broadcast(
 		logs.state.CurrentTerm = res.Term
 		return true, fmt.Errorf("someone has a higher term")
 	}
-
 	if !res.Success {
 		utils.ErrorLog("not sucessfull in sending the request,trying another \n")
 		newReq := &server.AppendRequest{}

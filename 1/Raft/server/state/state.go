@@ -3,6 +3,7 @@ package state
 import (
 	server "raft/protofiles"
 	"raft/server/utils"
+	"sync"
 )
 
 // ? All of the state
@@ -15,23 +16,34 @@ type State struct {
 // ? The persistent state
 type PersistentState struct {
 	//? Candidate id
-	CandidateId string `json:"id_candidate"`
+	CandidateId      string `json:"id_candidate"`
+	MutexCandidateId sync.RWMutex
 	//? Current term that we are on
-	CurrentTerm int32 `json:"current_term"`
+	CurrentTerm      int32 `json:"current_term"`
+	MutexCurrentTerm sync.RWMutex
 	//? The id of the candidate that i just voted in the election
-	MyVote string `json:"my_vote"`
+	MyVote      string `json:"my_vote"`
+	MutexMyVote sync.RWMutex
 	//? The logs that i am receiving (we will create this object in the protoc)
-	Entries *server.Entries `json:"entries"`
+	Entries      *server.Entries `json:"entries"`
+	MutexEntries sync.RWMutex
 	//? The server state in terms of membership (leader,candidate,follower)
-	ServerMemberState utils.ServerMemberState `json:"server_member_state"`
+	ServerMemberState      utils.ServerMemberState `json:"server_member_state"`
+	MutexServerMemberState sync.RWMutex
 	//? "Clients that are servers"
-	ServerClients map[string]server.RaftSimpleClient `json:"server_clients"`
+	ServerClients      map[string]server.RaftSimpleClient `json:"server_clients"`
+	MutexServerClients sync.RWMutex
 	//? Number of gathered votes
-	GatheredVotes int32 `json:"gathered_votes"`
+	GatheredVotes      int32 `json:"gathered_votes"`
+	MutexGatheredVotes sync.RWMutex
 	//? Leader id
-	LeaderId string `json:"id_leader"`
+	LeaderId      string `json:"id_leader"`
+	MutexLeaderId sync.RWMutex
 	//? If it is in debug mode
 	Debug bool `json:"debug"`
+	//? Last succeded election
+	LastSuccededElectionTerm      int32
+	MutexLastSuccededElectionTerm sync.RWMutex
 }
 
 // ? Volatile state
@@ -41,7 +53,8 @@ type VolatileState struct {
 	//? Last applied log to the state machine (getting executed)
 	LastApplied int32 `json:"last_executed_index"`
 	//? The "contract renewal", which is if the leader is renewing the contract with hearthbeats
-	ContractRenewal bool `json:"contract_renewal"`
+	ContractRenewal      bool `json:"contract_renewal"`
+	MutexContractRenewal sync.Mutex
 }
 
 // ? Volatile state just for leaders

@@ -2,6 +2,8 @@ package body
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	server "raft/protofiles"
 	hearthbeat "raft/server/hearthbeat"
 	logs "raft/server/logs"
@@ -42,11 +44,26 @@ func (rs RaftServer) SendHearthBeats() error {
 
 // ? Listener in case we are the leaders
 func (rs RaftServer) InitListener() {
+	logsNumber := 0
 	for {
+		rs.state.PersistentState.MutexServerMemberState.RLock()
+		rs.state.PersistentState.MutexServerClients.RLock()
+		rs.state.PersistentState.MutexCandidateId.RLock()
+		rs.state.PersistentState.MutexCurrentTerm.RLock()
 		if rs.state.PersistentState.ServerMemberState == utils.Leader && rs.state.PersistentState.Debug {
-			utils.Log("Sending hearthbeats\n")
+			if logsNumber == 8000000 {
+				logsNumber = 0
+			}
+			if logsNumber == 0 {
+				utils.Log("Sending hearthbeats\n")
+			}
 			rs.SendHearthBeats()
+			logsNumber++
 		}
+		rs.state.PersistentState.MutexServerMemberState.RUnlock()
+		rs.state.PersistentState.MutexServerClients.RUnlock()
+		rs.state.PersistentState.MutexCandidateId.RUnlock()
+		rs.state.PersistentState.MutexCurrentTerm.RUnlock()
 	}
 }
 
@@ -62,14 +79,26 @@ func (rs *RaftServer) RequestVoteRPC(ctx context.Context, req *server.VoteReques
 
 // ? Function to handle hearthbeats
 func (rs *RaftServer) HearthBeatRPC(ctx context.Context, req *server.HearthBeatRequest) (*server.HearthBeatConfirmation, error) {
-	conf, err := rs.Hearthbeat.HearhBeatRPC(ctx, req)
+	rs.state.PersistentState.MutexServerMemberState.RLock()
+	defer rs.state.PersistentState.MutexServerMemberState.RUnlock()
+	rs.state.PersistentState.MutexLeaderId.Lock()
+	defer rs.state.PersistentState.MutexLeaderId.Unlock()
+	rs.state.PersistentState.MutexMyVote.Lock()
+	defer rs.state.PersistentState.MutexMyVote.Unlock()
+	rs.state.PersistentState.MutexGatheredVotes.Lock()
+	defer rs.state.PersistentState.MutexGatheredVotes.Unlock()
+	rs.state.PersistentState.MutexCandidateId.Lock()
+	defer rs.state.PersistentState.MutexCandidateId.Unlock()
+	rs.state.PersistentState.MutexCurrentTerm.Lock()
+	defer rs.state.PersistentState.MutexCurrentTerm.Unlock()
+	conf, err := rs.Hearthbeat.HearthBeatRPC(ctx, req)
 	rs.state.VolatileState.ContractRenewal = true
 	if err != nil {
 		if strings.Contains(err.Error(), "there is a leader already") {
-			rs.Vote.BecomeFollower()
+			go rs.Vote.BecomeFollower()
 			return conf, nil
 		} else if strings.Contains(err.Error(), "has more term than candidate") {
-			rs.Vote.BecomeLeader()
+			go rs.Vote.BecomeLeader()
 			return conf, err
 		}
 	}
@@ -93,6 +122,33 @@ func (rs *RaftServer) InjectClients(clients map[string]string) error {
 		}
 		newClient := server.NewRaftSimpleClient(conn)
 		rs.InjectClient(key, newClient)
+	}
+	return nil
+}
+
+type ClientsJson struct {
+	Ip        string `json:"ip"`
+	Candidate string `json:"candidate"`
+}
+
+// ? Function to inject clients from json
+func (rs RaftServer) InjectFromJson(filePath string) error {
+	var decoded []ClientsJson
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(file, &decoded)
+	if err != nil {
+		return err
+	}
+	result := make(map[string]string)
+	for _, client := range decoded {
+		result[client.Candidate] = client.Ip
+	}
+	err = rs.InjectClients(result)
+	if err != nil {
+		return err
 	}
 	return nil
 }

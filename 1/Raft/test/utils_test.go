@@ -58,11 +58,11 @@ func Test_UnionSlices(t *testing.T) {
 }
 
 func Test_Represent_Majority(t *testing.T) {
-	result := utils.RepresentsMajority(10, 6)
+	result := utils.RepresentsMajority(5, 10)
 	if !result {
 		t.Fatalf("should throw true")
 	}
-	result = utils.RepresentsMajority(10, 4)
+	result = utils.RepresentsMajority(4, 10)
 	if result {
 		t.Fatalf("should throw false")
 	}

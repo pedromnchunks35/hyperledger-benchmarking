@@ -36,11 +36,13 @@ func (hb *Hearthbeat) SendHearthBeat(ctx context.Context, key string, value serv
 	if hb.state.PersistentState.Debug {
 		utils.Log("Sending hearthbeat from %v to %v\n", hb.state.PersistentState.CandidateId, key)
 	}
+
 	//? Prepare a request and send to everyone
 	req := &server.HearthBeatRequest{}
 	req.IdCandidate = hb.state.PersistentState.CandidateId
 	req.Term = hb.state.PersistentState.CurrentTerm
 	_, err := value.HearthBeatRPC(ctx, req)
+
 	ch <- err
 }
 
@@ -63,10 +65,11 @@ func (hb *Hearthbeat) SendHearthBeats() error {
 }
 
 // ? Function to handle hearthbeats
-func (hb *Hearthbeat) HearhBeatRPC(ctx context.Context, req *server.HearthBeatRequest) (*server.HearthBeatConfirmation, error) {
+func (hb *Hearthbeat) HearthBeatRPC(ctx context.Context, req *server.HearthBeatRequest) (*server.HearthBeatConfirmation, error) {
 	if hb.state.PersistentState.ServerMemberState == utils.Candidate {
 		hb.state.PersistentState.LeaderId = req.IdCandidate
 		hb.state.PersistentState.MyVote = ""
+		hb.state.PersistentState.GatheredVotes = 0
 		return answerHearhBeat(true, hb.state.CurrentTerm), fmt.Errorf(
 			"there is a leader already",
 		)
@@ -84,5 +87,6 @@ func (hb *Hearthbeat) HearhBeatRPC(ctx context.Context, req *server.HearthBeatRe
 			fmt.Errorf("candidate %v(host), has more term than candidate %v",
 				hb.state.PersistentState.CandidateId, req.IdCandidate)
 	}
+	utils.Log("receiving hearth beat from %v\n", req.IdCandidate)
 	return answerHearhBeat(true, hb.state.CurrentTerm), nil
 }

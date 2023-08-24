@@ -1,0 +1,10 @@
+[
+    {
+        "ip": "localhost:2000",
+        "candidate": "candidate1"
+    },
+    {
+        "ip": "localhost:2001",
+        "candidate": "candidate2"
+    }
+]

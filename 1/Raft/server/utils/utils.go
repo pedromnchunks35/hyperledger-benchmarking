@@ -49,7 +49,7 @@ func UnionSlices(slice1 []*server.Entrie, slice2 []*server.Entrie) []*server.Ent
 
 // ? Function to check if it represents majority
 func RepresentsMajority(numberOfVotes int32, numberOfClients int32) bool {
-	if numberOfClients+1 > int32(int(float64(numberOfVotes)/2)) {
+	if numberOfVotes+1 > int32(int(float64(numberOfClients+1)/2)) {
 		return true
 	} else {
 		return false
