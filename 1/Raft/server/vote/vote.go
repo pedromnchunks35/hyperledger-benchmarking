@@ -139,7 +139,7 @@ func (vote *Vote) StartElection() {
 		} else {
 			//? Case the vote failed and the given term is higher, then we shall become a follower and break this cycle
 			if !confirmation.VoteGranted && confirmation.Term > vote.state.CurrentTerm {
-				utils.Log("vote not granted by %v", key)
+				utils.Log("vote not granted by %v \n", key)
 				vote.state.PersistentState.GatheredVotes = int32(0)
 				break
 			}

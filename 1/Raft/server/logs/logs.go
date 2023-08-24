@@ -139,10 +139,20 @@ func (logs *Logs) RedirectToLeader(req *server.AppendRequest) (*server.AppendLog
 // ? Function to append entries
 func (logs *Logs) AppendLogsRPC(ctx context.Context, req *server.AppendRequest) (*server.AppendLogsConfirmation, error) {
 	utils.Log("Joining a log\n")
+	logs.state.PersistentState.MutexServerMemberState.RLock()
 	//? Case the leader was not specified
-	if req.IdLeader == "" {
+	if req.IdLeader == "" && logs.state.PersistentState.ServerMemberState != utils.Leader {
+		logs.state.PersistentState.MutexServerMemberState.RUnlock()
 		return logs.RedirectToLeader(req)
 	}
+	logs.state.PersistentState.MutexServerMemberState.RLock()
+	defer logs.state.PersistentState.MutexServerMemberState.RUnlock()
+	logs.state.PersistentState.MutexCandidateId.RLock()
+	defer logs.state.PersistentState.MutexCandidateId.RUnlock()
+	logs.state.PersistentState.MutexEntries.Lock()
+	defer logs.state.PersistentState.MutexEntries.Unlock()
+	logs.state.PersistentState.MutexCurrentTerm.RLock()
+	defer logs.state.PersistentState.MutexCurrentTerm.RUnlock()
 	//? Case we are the leaders we need to broadcast to all
 	if logs.state.PersistentState.ServerMemberState == utils.Leader {
 		//? Add the missing properties
@@ -152,6 +162,8 @@ func (logs *Logs) AppendLogsRPC(ctx context.Context, req *server.AppendRequest) 
 			req.PrevLogIndex = logs.state.PersistentState.Entries.Entrie[len(logs.state.PersistentState.Entries.Entrie)-1].IndexOfLog
 			req.PrevLogTerm = logs.state.PersistentState.Entries.Entrie[len(logs.state.PersistentState.Entries.Entrie)-1].Term
 		}
+		req.Entries.Entrie[0].IndexOfLog = req.PrevLogIndex + 1
+		req.Entries.Entrie[0].Term = logs.state.PersistentState.CurrentTerm
 		req.Term = logs.state.CurrentTerm
 		res, err := logs.BroadCastAll(req)
 		if err != nil {
