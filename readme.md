@@ -1,8 +1,8 @@
 # Benchmarking hyperledger fabric roadmap 
-## 1. Technology Fundamentals:
+## 1. Technology Fundamentals: [+Info](./1/readme.md)
 - Blockchain Concepts: Understand the basics of blockchain technology, including how distributed ledgers work, consensus algorithms, smart contracts, and transaction flow.
 
-## 2. Benchmarking Concepts:
+## 2. Benchmarking Concepts: [+Info](./2/readme.md)
 - Purpose and Goals: Familiarize yourself with the reasons behind benchmarking, such as performance evaluation, optimization, and comparing alternatives.
 - Metrics: Learn about the key performance metrics used in benchmarking, such as throughput (transactions per second), latency (transaction confirmation time), resource utilization, and scalability.
 - Workload: Understand the concept of workload and how it represents the activities and transactions that are being tested.
