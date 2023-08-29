@@ -16,3 +16,48 @@
 |test.rounds[i].workload|The object describing the [workload module](workload-module.md) used for the round|
 |test.rounds[i].workload.module|The path to the benchmark workload module that will construct the Transactions to submit|
 |test.rounds[i].workload.arguments|Arbitrary object that will be passed to the workload module as config|
+### Monitoring Settings
+- The monitoring configuration determines what kind of metrics the manager processs can gather and from where. The configuration resides under the monitors attribute.
+- [Monitors](./monitors.md)
+### Example of full config file
+```
+test:
+  workers:
+    number: 5
+  rounds:
+    - label: init
+      txNumber: 500
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 25
+      workload:
+        module: benchmarks/samples/fabric/marbles/init.js
+    - label: query
+      txDuration: 60
+      rateControl:
+        type: fixed-rate
+        opts:
+          tps: 5
+      workload:
+        module: benchmarks/samples/fabric/marbles/query.js
+monitors:
+  transaction:
+  - module: prometheus
+  resource:
+  - module: docker
+    options:
+      interval: 1
+      containers: ['all']
+  - module: prometheus
+    options:
+      url: "http://prometheus:9090"
+      metrics:
+        include: [dev-.*, couch, peer, orderer]
+        queries:
+        - name: Endorse Time (s)
+          query: rate(endorser_propsal_duration_sum{chaincode="marbles:v0"}[5m])/rate(endorser_propsal_duration_count{chaincode="marbles:v0"}[5m])
+          step: 1
+          label: instance
+          statistic: avg
+```
