@@ -6,7 +6,7 @@
 -> [Prof of Work](./PoW.md)
 
 
--> [Raft](./etcdraft.md)
+-> [Raft](./raft.md)
 
 # Hyper ledger fabric transaction workflow
 -> [Transacion workflow](./transactionFlow.md)
