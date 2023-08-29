@@ -23,3 +23,9 @@
 - Settings are SUT independent, you can use the same settings for multiple versions of your system but this characteristic can be avoided if you specifically target a specific version of the system
 - Basicly it is the responsible for dictate the execution of the workloads and the results of the benching
 - See the constitution [here](bench-config.md)
+### Benchmark artifacts
+- Crypto materials necessary to interact with the SUT
+- Smart contract source code for caliper to deploy (If the SUT connector support such operation)
+- Runtime config files 
+- Pre-installed third party packages for your workload modules
+### [Writing connectors](connectors.md)
