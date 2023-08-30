@@ -62,12 +62,12 @@
     - ***caliper-worker-remote***: if set to false (default) then the manager process will spawn the required number of worker processes locally, resulting in the module 1 or 2
     - ***caliper-worker-communication-method***: can take the values **process** (the default) or **mqtt** and determine the message transport implementation to use. The **process** communication corresponds to the first model, while **mqtt** denotes models 2 and 3
     ##### The different models
-    |**remote** value|**method** value|Corresponding deployment model|
-    |--|--|--|
-    |false|process|1. Interprocess communication with local workers|
-    |false|mqtt|2. Remote messaging-based communication with local workers|
-    |true|mqtt|3. Remote messaging-based communication with remote workers|
-    |true|process|Invalid, since IPC does not apply to remote communication|
+    | **remote** value | **method** value | Corresponding deployment model                              |
+    | ---------------- | ---------------- | ----------------------------------------------------------- |
+    | false            | process          | 1. Interprocess communication with local workers            |
+    | false            | mqtt             | 2. Remote messaging-based communication with local workers  |
+    | true             | mqtt             | 3. Remote messaging-based communication with remote workers |
+    | true             | process          | Invalid, since IPC does not apply to remote communication   |
     ##### [Messengers config](messengers.md)
 #### Interprocess communication
 - This is the default behavior of a message protocol or **process** message protocol
@@ -82,3 +82,27 @@
 - In this setup, the communications stills local, but the same logic applies when we want to distribute the workers
 #### Distibuted message broker communication
 ![mqtt distributed](assets/distributed-mqtt.png)
+## Installing and Running Caliper
+- Installing and running caliper consists in the following steps:
+  1. Acquire the Caliper CLI either from NPM or DockerHub
+  2. Execute a bind command through the CLI. This step pulls the specified version of SDP packages for the selected platform
+  3. Start the benchmark through the CLI or by starting the Docker Container
+- We can find samples of config in [Here](https://github.com/hyperledger/caliper-benchmarks)
+### Cloning the repository to follow along
+```
+git clone https://github.com/hyperledger/caliper-benchmarks.git
+cd caliper-benchmarks
+git checkout <your Caliper version>
+```
+### Install binarie by npm
+```
+npm install --only=prod @hyperledger/caliper-cli@0.5.0
+```
+### Bind command
+- You can use "npx caliper bind", to inject some dependencies relative to the dependencies you configured in a yaml file like we saw before in the bind configurations
+### Unbind command
+- This is to unbind the configurations that we setted just before
+### Launch command
+- It was tought to generate both manager and workers up and running
+### To make all work
+- To make all work we must config the caliper-workspace, caliper-benchconfig and caliper-networkconfig
