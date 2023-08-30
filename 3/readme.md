@@ -29,3 +29,56 @@
 - Runtime config files 
 - Pre-installed third party packages for your workload modules
 ### [Writing connectors](connectors.md)
+### Caliper processes
+- Caliper has two different services/processes:
+    - The manager process which initializes the SUT and coordinates the run of the benchmark (schedules the configured rounds) and handles performance report generation based on the observed TX statistics
+    - The worker processes perform the actual workload generation,independently of each other. Even if a worker process reaches the limits of its host machine, using more worker processes (on multiple machines) cam further increase the workload rate of caliper. Thus worker processes are the backbone of Caliper's scalability
+    ![Caliper processes](./assets/processes.png)
+#### Manager processes
+![Manager proccess](assets/manager-all-tasks.png)
+1. In the first stage, caliper executes the startup script (if present) from the network configuration file. This step is mainly useful for local caliper and SUT deployments as it provides a convenient way to start the network and caliper in one step. The deployment is not responsibility of Caliper.
+2. In the secound stage, caliper initializes the SUT. The tasks performed here are highly dependent on the capabilities of the SUT and the SUT connector. In hyperledger fabric we use this stage to create/join channels and register/enroll users
+3. In the third stage, Caliper deploys the smart contracts to the SUT, if the SUT and the connector support such operation (like with hyper ledger fabric connector)
+4. In the fourth stage Caliper schedules and executes the configured rounds through the worker processes. This is the stage where the workload generation happens (throught the workers!)
+5. In the last stage, after executing the rounds and generating the report, caliper executes the cleanup script (if present) from the configuration file. This is also something usefull for local deployments
+- The scripts part is controlled by the scripts table in the runtime configs
+#### The worker process
+![worker proc](assets/worker-proc.png)
+- The worker procces spends most of its time in the workload generation loop. The loop consists of two important steps:
+  1. Waiting for the rate controller to enable the next TX
+  2. Once the rate controller enables the next TX, the worker gives control to the workload module. The workload module assembles the parameteres of the TX (specific to the SUT and smart contract API) and calls the simple API of the SUT connector that will, in turn, send the TX request to the SUT(probably using the SDK of the SUT)
+- During the workload loop, the worker process sends progress updates to the manager process. Progress reporting on the manager side can be enabled and configured with the ***caliper-progress-reporting-enabled*** and ***caliper-progress-reporting-interval*** (see runtime settings, the basic ones)
+### Process distribution models
+- There are 3 different deployment models
+  1. Automatically spawned worker processes on the same host, using interprocess communications (IPC) with the manager process
+  2. Automatically spawned worker processes on the same host, using a remote messaging mechanism with the manager process
+  3. Manually started worker processes on an arbitrary number of hosts, using a remote messaging mechanism with the manager process
+- Its for the best starting with 1/2 and then go to the third step 
+#### Modular message transport
+![Caliper modular message transport](assets/caliper-modular-message-transport.png)
+- This is how caliper handles messaging internally
+- The message module is swappable,thus enabling different communication methods
+- The deployment model is configurable with the following two setting keys:
+    - ***caliper-worker-remote***: if set to false (default) then the manager process will spawn the required number of worker processes locally, resulting in the module 1 or 2
+    - ***caliper-worker-communication-method***: can take the values **process** (the default) or **mqtt** and determine the message transport implementation to use. The **process** communication corresponds to the first model, while **mqtt** denotes models 2 and 3
+    ##### The different models
+    |**remote** value|**method** value|Corresponding deployment model|
+    |--|--|--|
+    |false|process|1. Interprocess communication with local workers|
+    |false|mqtt|2. Remote messaging-based communication with local workers|
+    |true|mqtt|3. Remote messaging-based communication with remote workers|
+    |true|process|Invalid, since IPC does not apply to remote communication|
+    ##### [Messengers config](messengers.md)
+#### Interprocess communication
+- This is the default behavior of a message protocol or **process** message protocol
+![default](assets/default-message-protocol.png)
+- This is the simplest deployment model for caliper, requiring no additional config and third party messaging components
+- It is the ideal for the first time starting caliper
+- It is constrained to a single host
+#### Local message broker communication
+- This is the other behavior, that makes usage of a message broker and a publisher subscriber pattern
+![mqtt](assets/mqtt-publish-subscriber.png)
+- It is the exact same thing, the difference is that instead of communicating directly to another component, it sends to a broker the message and the broker distributes the messages
+- In this setup, the communications stills local, but the same logic applies when we want to distribute the workers
+#### Distibuted message broker communication
+![mqtt distributed](assets/distributed-mqtt.png)
