@@ -1,0 +1,23 @@
+name: Caliper test
+version: "2.0.0"
+
+caliper:
+  blockchain: fabric
+
+channels:
+  - channelName: channel1
+    contracts:
+      - id: basic
+
+organizations:
+  - mspid: Org1MSP
+    identities:
+      certificates:
+        - name: "pedro"
+          clientPrivateKey:
+            path: "./networks/certificates/pedro/keystore/key.pem"
+          clientSignedCert:
+            path: "./networks/certificates/pedro/signcerts/cert.pem"
+    connectionProfile:
+      path: "./networks/config/ccp.yaml"
+      discover: false

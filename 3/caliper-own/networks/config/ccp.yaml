@@ -1,0 +1,46 @@
+name: test
+description: "this is just a ccp"
+version: "1.0"
+client:
+  organization:
+    - Org1
+channels:
+  channel1:
+    orderers:
+      - ordererOrg1
+    peers:
+      peer1:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer1
+    certificateAuthorities:
+      - org1-ca
+orderers:
+  ordererOrg1:
+    url: grpcs://192.168.1.101:7050
+    tlsCACerts:
+      pem: '../certificates/tlscacerts/ca.pem'
+    grpcOptions:
+      ssl-target-name-override: 192.168.1.101
+      hostnameOverride: 192.168.1.101
+peers:
+  peer1:
+    url: grpcs://192.168.1.100:7051
+    tlsCACerts:
+      pem:  '../certificates/tlscacerts/ca.pem'
+    grpcOptions:
+      ssl-target-name-override: 192.168.1.100
+      hostnameOverride: 192.168.1.100
+certificateAuthorities:
+  org1-ca:
+    url: http://localhost:7777
+  httpOptions:
+    verify: false
+  tlsCACerts:
+      pem:  '../certificates/tlscacerts/ca.pem'
