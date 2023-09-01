@@ -3,21 +3,25 @@ version: "2.0.0"
 
 caliper:
   blockchain: fabric
+  sutOptions:
+    mutualTls: false
 
 channels:
   - channelName: channel1
     contracts:
       - id: basic
+        contractId: basic
 
 organizations:
   - mspid: Org1MSP
     identities:
       certificates:
-        - name: "pedro"
+        - name: adm-iter
+          admin: true
           clientPrivateKey:
-            path: "./networks/certificates/pedro/keystore/key.pem"
+            path: ./networks/certificates/admin/keystore/key.pem
           clientSignedCert:
-            path: "./networks/certificates/pedro/signcerts/cert.pem"
+            path: ./networks/certificates/admin/signcerts/cert.pem
     connectionProfile:
-      path: "./networks/config/ccp.yaml"
+      path: ./networks/config/ccp.yaml
       discover: false

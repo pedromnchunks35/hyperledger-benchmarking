@@ -25,7 +25,7 @@ orderers:
   ordererOrg1:
     url: grpcs://192.168.1.101:7050
     tlsCACerts:
-      pem: '../certificates/tlscacerts/ca.pem'
+      path: ./networks/certificates/tlscacerts/ca.pem
     grpcOptions:
       ssl-target-name-override: 192.168.1.101
       hostnameOverride: 192.168.1.101
@@ -33,14 +33,14 @@ peers:
   peer1:
     url: grpcs://192.168.1.100:7051
     tlsCACerts:
-      pem:  '../certificates/tlscacerts/ca.pem'
+      path:  ./networks/certificates/tlscacerts/ca.pem
     grpcOptions:
       ssl-target-name-override: 192.168.1.100
       hostnameOverride: 192.168.1.100
 certificateAuthorities:
   org1-ca:
-    url: http://localhost:7777
+    url: https://localhost:7778
   httpOptions:
     verify: false
   tlsCACerts:
-      pem:  '../certificates/tlscacerts/ca.pem'
+      path:  ./networks/certificates/tlscacerts/ca.pem
