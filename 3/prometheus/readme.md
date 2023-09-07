@@ -47,3 +47,65 @@
     static_configs:
       - targets: ['orderer1.example.com:9091', 'orderer2.example.com:9091']
   ```
+- We can add multiple targets to the same job and identify those targets by label
+```
+scrape_configs:
+  - job_name:       'node'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['localhost:8080', 'localhost:8081']
+        labels:
+          group: 'production'
+
+      - targets: ['localhost:8082']
+        labels:
+          group: 'canary'
+```
+- Note that we can also have multiple jobs
+- In order to test that config and also test another configurations, we will create a node_exporter 
+- In order to achieve this, we download the node_exporter
+- Then we executed it as so
+  ```
+  ./node_exporter --web.listen-address 127.0.0.1:8080
+  ./node_exporter --web.listen-address 127.0.0.1:8081
+  ./node_exporter --web.listen-address 127.0.0.1:8082
+  ```
+- Also we will aplly the configuration that we spoke of in the prometheus yaml file  
+  ```
+   # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['localhost:8080', 'localhost:8081']
+        labels:
+          group: 'production'
+
+      - targets: ['localhost:8082']
+        labels:
+          group: 'canary'
+  ```
+### Rules
+- We can create a rule for a specific query like so:
+  ```
+    groups:
+- name: cpu-node
+  rules:
+  - record: job_instance_mode:node_cpu_seconds:avg_rate5m
+    expr: avg by (job, instance, mode) (rate(node_cpu_seconds_total[5m]))
+  ```
+- Put that inside of a file called prometheus.rules.yml
+- Now we should add it to the prometheus.yaml
+  ```
+  rule_files:
+    - 'prometheus.rules.yml'
+  ```
+  - Reload prometheus server and query the "record"
+### Reloading
+- We can reload prometheus config by killing is process using this 
+  ```
+  kill -s SIGHUP <PID>
+  ```
+## [Configurations](./configurations/readme.md)
