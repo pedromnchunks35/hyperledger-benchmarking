@@ -119,6 +119,13 @@
 |9|maxRecvMsgSize| the maximum size, in bytes, of messages that the delivery client is willing to receive from other network peers during the block and transaction delivery process|1.Message Size Limit<br>2.Data Transmission<br>3.Resource Usage|
 |9|maxSendMsgSize|the maximum size, in bytes, of messages that the delivery client can send to other network peers during the block and transaction delivery process|1.Message Size Limit<br>2.Data Transmission<br>3.Resource Usage|
 |10|executetimeout|refers to the maximum amount of time (in seconds) that a chaincode invocation or transaction is allowed to execute before it is terminated.|1.Execution time limit<br>2.Preventing Stalemate<br>3.Resource Management|
+|11|ledger.state.requestTimeout|the timeout duration for client requests to the blockchain network, including queries and transactions. If a response is not received within the specified time, the request is considered failed|1.Error handling<br>2.Response Configuration(client side)<br>3.Latency Considerations|
+|11|ledger.state.internalQueryLimit|limit on the number of records per each couchdb query|1.Querys<br>2.Latency<br>3.Network congestion|
+|11|ledger.state.maxBatchUpdateSize|limit on the number of records per couchdb bulk update batch|1.Update batching<br>2.Latency<br>3.Network congestion|
+|11|ledger.state.cacheSize|in-memory state cache|1.Memory<br>2.Latency<br>3.Resource Usage|
+
+Some configs are not here because they represent the same despite beeing in different components
+
 # Scenario 1 (1 peer + 1 orderer)
 ![Scenario 1](assets/Scenario1.drawio.png)
 ## 1.1.1 
@@ -250,4 +257,5 @@
 - Normal Rate
 - Write Function
   
-[MORE SCENARIOS NEED MORE RESOURCES]
+# Extra toughts
+- In order to achieve monitoring and also measure everything in hyper ledge fabric, we need to also learn more about [prometheus](../prometheus/readme.md) and [grafana](../grafana/readme.md)
