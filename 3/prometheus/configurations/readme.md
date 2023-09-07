@@ -156,4 +156,22 @@
 |modulus|Modulus to take of the hash of the source label values|int||
 |replacement|Replacement value against which a regex replace is performed if the regular expression matches. Regex capture groups are available.|string|$1|
 |action|Action to perform based on regex matching|relabel_action|replace|
+<regex> is any valid RE2 regular expression. It is required for the replace, keep, drop, labelmap,labeldrop and labelkeep actions. The regex is anchored on both ends. To un-anchor the regex, use .*<regex>.*.
 
+<relabel_action> determines the relabeling action to take:
+
+- replace: Match regex against the concatenated source_labels. Then, set target_label to replacement, with match group references (${1}, ${2}, ...) in replacement substituted by their value. If regex does not match, no replacement takes place.
+- lowercase: Maps the concatenated source_labels to their lower case.
+- uppercase: Maps the concatenated source_labels to their upper case.
+- keep: Drop targets for which regex does not match the concatenated source_labels.
+- drop: Drop targets for which regex matches the concatenated source_labels.
+- keepequal: Drop targets for which the concatenated source_labels do not match target_label.
+- dropequal: Drop targets for which the concatenated source_labels do match target_label.
+- hashmod: Set target_label to the modulus of a hash of the concatenated source_labels.
+- labelmap: Match regex against all source label names, not just those specified in source_labels. Then copy the values of the matching labels to label names given by replacement with match group references (${1}, ${2}, ...) in replacement substituted by their value.
+- labeldrop: Match regex against all label names. Any label that matches will be removed from the set of labels.
+- labelkeep: Match regex against all label names. Any label that does not match will be removed from the set of labels.
+
+Care must be taken with labeldrop and labelkeep to ensure that metrics are still uniquely labeled once the labels are removed.
+
+# [Rules](rules.md)

@@ -109,3 +109,5 @@ scrape_configs:
   kill -s SIGHUP <PID>
   ```
 ## [Configurations](./configurations/readme.md)
+
+## [Querying](./querying/readme.md)
