@@ -69,9 +69,7 @@ scrape_configs:
 - In order to achieve this, we download the node_exporter
 - Then we executed it as so
   ```
-  ./node_exporter --web.listen-address 127.0.0.1:8080
-  ./node_exporter --web.listen-address 127.0.0.1:8081
-  ./node_exporter --web.listen-address 127.0.0.1:8082
+  ./node_exporter --web.listen-address 127.0.0.1:8080 & ./node_exporter --web.listen-address 127.0.0.1:8081 & ./node_exporter --web.listen-address 127.0.0.1:8082
   ```
 - Also we will aplly the configuration that we spoke of in the prometheus yaml file  
   ```
