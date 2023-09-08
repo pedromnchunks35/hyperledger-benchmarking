@@ -111,3 +111,5 @@ scrape_configs:
 ## [Configurations](./configurations/readme.md)
 
 ## [Querying](./querying/readme.md)
+
+## [Operators](./operators/readme.md)
