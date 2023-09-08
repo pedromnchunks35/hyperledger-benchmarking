@@ -53,3 +53,87 @@ We can also use the following operators:
 ```
 http_requests_total{environment=~"staging|testing|development",method!="GET"}
 ```
+#### Bad example
+```
+{job=~".*"} # Bad!
+```
+- it is a bad example because it matches all strings with a job,which lead to a broader select that is not desirable
+- it is better to besides selecting all jobs also provide another label
+```
+{job=~".+"}              # Good!
+{job=~".*",method="get"} # Good!
+```
+#### Example
+- We can also query by metrics names 
+  ```
+  {__name__=~"lol:.*"}
+  ```
+- this will query every metric that has lol: at first of the name metric
+- metric name cannot be one of the works:
+  - bool
+  - on
+  - ignoring
+  - group_left
+  - group_right
+ 
+ ```
+    on{} # Bad!
+ ```
+ ```
+  {__name__="on"} # Good!
+ ```
+### Range Vector Selectors
+- Range vector selectos is for time and sits inside of "[]"
+  ```
+    http_requests_total{job="prometheus"}[5m]
+  ```
+#### Time durations
+- ms
+- s
+- m
+- h
+- d
+- w
+- y
+##### Example
+```
+5h
+1h30m
+5m
+10s
+```
+### Offset modifier
+- It creates a offset to measure in the past relative to the current time
+  ```
+  http_requests_total offset 5m
+  ```
+- it needs to follow the selector
+  ```
+  sum(http_requests_total{method="GET"} offset 5m) // GOOD.
+  sum(http_requests_total{method="GET"}) offset 5m // INVALID.
+  ```
+- We also can measure in the future we can do like this
+  ```
+  rate(http_requests_total[5m] offset -1w)
+  ```
+### @ modifier
+- it lets us to evaluate the expression at a given timeframe using a unix timestamp
+  ```
+  http_requests_total @ 1609746000
+  ```
+- this corresponds to evaluating that expression at 2021-01-04T07:40:00+00:00
+- It needs also to follow the selector
+  ```
+  sum(http_requests_total{method="GET"} @ 1609746000) //GOOD
+  sum(http_requests_total{method="GET"}) @ 1609746000 // INVALID.
+  ```
+- We can use it along with "start()" and "end()"
+  ```
+  http_requests_total @ start()
+  rate(http_requests_total[5m] @ end())
+  ```
+## Subquery
+```
+    Syntax: <instant_query> '[' <range> ':' [<resolution>] ']' [ @ <float_literal> ] [ offset <duration> ]
+```
+- resolution is optional
