@@ -17,6 +17,12 @@ scrape_configs:
     scrape_interval: 5s
 
     static_configs:
-      - targets: ['192.168.1.100:9443', '192.168.1.101:8443']
+      - targets: ['192.168.1.100:9443']
         labels:
-          group: 'scenario1'
+          group: 'peer'
+      - targets: ['192.168.1.101:8443']
+        labels:
+          group: 'orderer'
+      - targets: ['localhost:3001']
+        labels:
+          group: 'caliper'
