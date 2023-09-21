@@ -1,0 +1,17 @@
+{
+	"ulid": "01HAVNGXAMDVYPRPT8KQ25TYG9",
+	"minTime": 1695228951323,
+	"maxTime": 1695232800000,
+	"stats": {
+		"numSamples": 1067205,
+		"numSeries": 1564,
+		"numChunks": 8482
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HAVNGXAMDVYPRPT8KQ25TYG9"
+		]
+	},
+	"version": 1
+}

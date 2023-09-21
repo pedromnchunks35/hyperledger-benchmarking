@@ -21,8 +21,7 @@
 ```
 ## Float literals
 Range of chars
-```
-```
+
 ### example
 ```
 23

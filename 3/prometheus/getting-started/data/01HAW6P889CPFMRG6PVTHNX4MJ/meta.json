@@ -1,0 +1,17 @@
+{
+	"ulid": "01HAW6P889CPFMRG6PVTHNX4MJ",
+	"minTime": 1695300343170,
+	"maxTime": 1695304800000,
+	"stats": {
+		"numSamples": 675740,
+		"numSeries": 1510,
+		"numChunks": 4410
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HAW6P889CPFMRG6PVTHNX4MJ"
+		]
+	},
+	"version": 1
+}

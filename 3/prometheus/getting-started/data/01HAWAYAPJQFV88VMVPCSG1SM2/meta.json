@@ -1,0 +1,30 @@
+{
+	"ulid": "01HAWAYAPJQFV88VMVPCSG1SM2",
+	"minTime": 1695232801326,
+	"maxTime": 1695297600000,
+	"stats": {
+		"numSamples": 786310,
+		"numSeries": 1422,
+		"numChunks": 8430
+	},
+	"compaction": {
+		"level": 2,
+		"sources": [
+			"01HAVNGXDJ4H30VNMW3B9Y1YHG",
+			"01HAVZTH08R1XC2M4FQMFVFW98"
+		],
+		"parents": [
+			{
+				"ulid": "01HAVNGXDJ4H30VNMW3B9Y1YHG",
+				"minTime": 1695232801326,
+				"maxTime": 1695240000000
+			},
+			{
+				"ulid": "01HAVZTH08R1XC2M4FQMFVFW98",
+				"minTime": 1695293142328,
+				"maxTime": 1695297600000
+			}
+		]
+	},
+	"version": 1
+}

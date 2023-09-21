@@ -18,16 +18,12 @@ test:
             contractId: basic
 monitors:
   resource:
-    - module: prometheus
+    - module: docker
       options:
-        url: "http://localhost:9090"
-        metrics:
-          include: [peer]
-          queries:
-            - name: Test
-              query: gossip_state_commit_duration_count{channel="channel1",group="peer",instance="192.168.1.100:9443",job="node"}
-  transaction: 
+        interval: 5
+        containers:
+        - http://192.168.1.100:2375/peer1
+  transaction:
     - module: prometheus
       options:
         scrapePort: 3001
-        
