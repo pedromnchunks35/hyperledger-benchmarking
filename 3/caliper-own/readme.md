@@ -17,3 +17,9 @@
     - 3. Create a CCP file which stands for (common connection profile), because the normal connector uses the gateway sdk instead of the client sdk. This file will be in the config directory.. you can use it as template.
     - 4. Create the networkconfig file where you will mention how your network is composed
 - Create a workload file, which will specify the transaction you will do and the init of it
+## 2. Run the benchmark
+```
+npx caliper launch manager --caliper-workspace ./ --caliper-networkconfig networks/networkConfig.yaml --caliper-benchconfig benchmarks/myAssetBenchmark.yaml --caliper-flow-only-test
+```
+## Notes
+- to monitor docker containers we need to start a docker daemon (we should stop the docker, we maybe need to delete metadata)
