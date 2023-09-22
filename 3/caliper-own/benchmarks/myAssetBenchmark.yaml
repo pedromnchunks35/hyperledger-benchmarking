@@ -2,7 +2,7 @@ test:
     name: basic-contract-benchmark
     description: test benchmark
     workers:
-      number: 2
+      number: 4
     rounds:
       - label: readAsset
         description: Read asset benchmark
@@ -22,7 +22,7 @@ monitors:
       options:
         interval: 5
         containers:
-        - http://192.168.1.100:2375/peer1
+        - http://192.168.1.100:7531/peer1
   transaction:
     - module: prometheus
       options:

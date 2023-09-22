@@ -26,3 +26,10 @@ scrape_configs:
       - targets: ['localhost:3001']
         labels:
           group: 'caliper'
+  - job_name: docker
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['192.168.1.100:8080']
+        labels:
+          group: 'docker-cadvisor'
+          metrics_path: /metrics/cadvisor

@@ -1,0 +1,17 @@
+{
+	"ulid": "01HAYC547TAEAGNMQ82BXR5G15",
+	"minTime": 1695373181324,
+	"maxTime": 1695376800000,
+	"stats": {
+		"numSamples": 303378,
+		"numSeries": 1632,
+		"numChunks": 2752
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HAYC547TAEAGNMQ82BXR5G15"
+		]
+	},
+	"version": 1
+}
