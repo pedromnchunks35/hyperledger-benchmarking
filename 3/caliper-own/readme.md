@@ -22,4 +22,17 @@
 npx caliper launch manager --caliper-workspace ./ --caliper-networkconfig networks/networkConfig.yaml --caliper-benchconfig benchmarks/myAssetBenchmark.yaml --caliper-flow-only-test
 ```
 ## Notes
-- to monitor docker containers we need to start a docker daemon (we should stop the docker, we maybe need to delete metadata)
+- We can send the results from the benchmark via the transaction monitor in the benchmark config
+- We can also get resources information from docker by enabling docker daemon
+  - To enable docker daemon, we need to edit the file /etc/docker/daemon.json
+    ```
+    {
+    "hosts": ["tcp://0.0.0.0:7531","unix:///var/run/docker.sock"],
+    "metrics-addr" : "0.0.0.0:7532"
+    }
+    ```
+  - as you can see we added the hosts ip addresses and then oppened the fireall with firewall-cmd
+  - we add the resource monitor in the caliper benchmark config
+- another way to make monitoring is to add "metrics-addr" ipaddress and also open the port with firewall-cmd, this becomes a exporter that we config in promtheus target
+- another one is to add the cadviser and add it as target also in the prometheus
+- later is just the normal steps of using prometheus
