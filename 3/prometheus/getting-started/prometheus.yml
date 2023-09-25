@@ -20,7 +20,7 @@ scrape_configs:
       - targets: ['192.168.1.100:9443']
         labels:
           group: 'peer'
-      - targets: ['192.168.1.101:8443']
+      - targets: ['192.168.1.101:9443']
         labels:
           group: 'orderer'
       - targets: ['localhost:3001']
