@@ -1,0 +1,1 @@
+(sum(rate(container_fs_read_seconds_total{image="couchdb"}[1m]))+sum(rate(container_fs_read_seconds_total{image="hyperledger/fabric-peer"}[1m]))+sum(rate(container_fs_read_seconds_total{image="production-peer1-basic_1.0-e4de097efb5be42d96aebc4bde18eea848aad0f5453453ba2aad97f2e41e0d57-c9694a5f80f5125a5b01a7156a32c4f451942097dccb1f1b40c3cedd33ecf3b8"}[1m])))*100

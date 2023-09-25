@@ -258,4 +258,16 @@ Some configs are not here because they represent the same despite beeing in diff
 - Write Function
   
 # Extra toughts
-- In order to achieve monitoring and also measure everything in hyper ledge fabric, we need to also learn more about [prometheus](../prometheus/readme.md) and [grafana](../grafana/readme.md)
+- In order to achieve monitoring and also measure everything in hyper ledge fabric, we need to also learn more about [prometheus](../prometheus/readme.md) , [grafana](../grafana/readme.md) and cadvisor for containers
+- To run Cadvisor:
+```
+docker run -d --name=cadvisor -p 8080:8080 --volume=/:/rootfs:ro --volume=/var/run:/var/run:ro --volume=/sys:/sys:ro --volume=/var/lib/docker/:/var/lib/docker:ro google/cadvisor
+```
+- Note that for newer versions we need to use other image because that repository from google is deprecated
+```
+docker run -d --name=cadvisor -p 8080:8080 --privileged --volume=/:/rootfs:ro --volume=/var/run:/var/run:rw --volume=/sys:/sys:ro --volume=/var/lib/docker/:/var/lib/docker:ro gcr.io/cadvisor/cadvisor:v0.47.2
+```
+- To start grafana
+  ```
+  sudo grafana-server --homepath=/usr/share/grafana/
+  ```
