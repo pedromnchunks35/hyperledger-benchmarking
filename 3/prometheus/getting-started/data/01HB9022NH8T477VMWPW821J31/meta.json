@@ -1,0 +1,17 @@
+{
+	"ulid": "01HB9022NH8T477VMWPW821J31",
+	"minTime": 1695729600000,
+	"maxTime": 1695736800000,
+	"stats": {
+		"numSamples": 6756788,
+		"numSeries": 5959,
+		"numChunks": 55189
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HB9022NH8T477VMWPW821J31"
+		]
+	},
+	"version": 1
+}

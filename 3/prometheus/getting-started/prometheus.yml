@@ -10,26 +10,32 @@ rule_files:
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'node'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
+# JOB PEER1
+  - job_name: 'peer1'
     scrape_interval: 5s
-
     static_configs:
       - targets: ['192.168.1.100:9443']
         labels:
-          group: 'peer'
+          group: 'peer1'
+      - targets: ['192.168.1.100:8080']
+        labels:
+          group: 'docker-cadvisor'
+          metrics_path: /metrics/cadvisor
+# JOB CALIPER
+  - job_name: caliper
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:3001']
+        labels:
+          group: 'caliper' 
+# JOB ORDERER
+  - job_name: 'orderer'
+    scrape_interval: 5s
+    static_configs:
       - targets: ['192.168.1.101:9443']
         labels:
           group: 'orderer'
-      - targets: ['localhost:3001']
-        labels:
-          group: 'caliper'
-  - job_name: docker
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['192.168.1.100:8080']
+      - targets: [192.168.1.101:8080]
         labels:
           group: 'docker-cadvisor'
           metrics_path: /metrics/cadvisor

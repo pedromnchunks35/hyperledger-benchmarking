@@ -267,6 +267,11 @@ docker run -d --name=cadvisor -p 8080:8080 --volume=/:/rootfs:ro --volume=/var/r
 ```
 docker run -d --name=cadvisor -p 8080:8080 --privileged --volume=/:/rootfs:ro --volume=/var/run:/var/run:rw --volume=/sys:/sys:ro --volume=/var/lib/docker/:/var/lib/docker:ro gcr.io/cadvisor/cadvisor:v0.47.2
 ```
+- Or use 
+```
+sudo docker run -d --name=cadvisor -p 8080:8080 --volume=/:/rootfs:ro --volume=/var/run:/var/run:ro --volume=/sys:/sys:ro --volume=/var/snap/docker/common/var-lib-docker:/var/lib/docker:ro gcr.io/cadvisor/cadvisor:v0.47.2
+```
+- In case the docker we have is from snap
 - To start grafana
   ```
   sudo grafana-server --homepath=/usr/share/grafana/
