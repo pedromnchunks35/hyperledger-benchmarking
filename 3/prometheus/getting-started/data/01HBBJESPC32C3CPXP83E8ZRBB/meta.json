@@ -1,0 +1,17 @@
+{
+	"ulid": "01HBBJESPC32C3CPXP83E8ZRBB",
+	"minTime": 1695816000232,
+	"maxTime": 1695823200000,
+	"stats": {
+		"numSamples": 6727885,
+		"numSeries": 5889,
+		"numChunks": 54944
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HBBJESPC32C3CPXP83E8ZRBB"
+		]
+	},
+	"version": 1
+}
